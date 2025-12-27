@@ -7,73 +7,101 @@ import java.net.Socket;
 import src.common.Protocol;
 
 public class ClientHandler extends Thread {
-    private Socket socket;
-    private ServerController serverController;
-    private DataInputStream in;
-    private DataOutputStream out;
-    private String clientName;
-    private boolean isConnected = true;
+  private Socket socket;
+  private ServerController serverController;
+  private DataInputStream in;
+  private DataOutputStream out;
+  private String clientName;
+  // Buffer các TREE messages đến trước khi LOGIN được xử lý
+  private java.util.List<String> pendingTree = new java.util.ArrayList<>();
+  private boolean isConnected = true;
 
-    public ClientHandler(Socket socket, ServerController serverController) {
-        this.socket = socket;
-        this.serverController = serverController;
+  public ClientHandler(Socket socket, ServerController serverController) {
+    this.socket = socket;
+    this.serverController = serverController;
+  }
+
+  @Override
+  public void run() {
+    try {
+      in = new DataInputStream(socket.getInputStream());
+      out = new DataOutputStream(socket.getOutputStream());
+
+      while (isConnected) {
+        String message = in.readUTF(); 
+        System.out.println("DEBUG: Server nhận được -> " + message);
+        processMessage(message);
+      }
+
+    } catch (IOException e) {
+      System.out.println("Client đã ngắt kết nối.");
+    } finally {
+      closeConnection();
     }
+  }
 
-    @Override
-    public void run() {
-        try {
-            // 1. Mở luồng dữ liệu
-            in = new DataInputStream(socket.getInputStream());
-            out = new DataOutputStream(socket.getOutputStream());
+  private void processMessage(String message) {
+    String[] parts = message.split("\\|");
+    String cmd = parts[0];
 
-            // 2. VÒNG LẶP LẮNG NGHE (QUAN TRỌNG NHẤT)
-            while (isConnected) {
-                // Code sẽ dừng ở đây chờ Client gửi tin tới
-                String message = in.readUTF(); 
-                
-                System.out.println("DEBUG: Server nhận được -> " + message); // In ra để kiểm tra
-                processMessage(message);
-            }
-
-        } catch (IOException e) {
-            System.out.println("Client đã ngắt kết nối.");
-        } finally {
-            closeConnection();
+    switch (cmd) {
+      case Protocol.CMD_LOGIN -> {
+        // LOGIN | TênMáy
+        String desired = (parts.length > 1) ? parts[1] : "Unknown";
+        // Gọi Controller để cập nhật giao diện (Thêm Tab)
+        // Server trả lại tên đã được đảm bảo duy nhất
+        String assigned = serverController.onClientLogin(this, desired);
+        this.clientName = assigned;
+        // Nếu có pending TREE messages, flush chúng với clientName đúng
+        if (!pendingTree.isEmpty()) {
+          for (String p : pendingTree) {
+            serverController.onClientTreeEntry(assigned, p);
+          }
+          pendingTree.clear();
         }
-    }
-
-    private void processMessage(String message) {
-        String[] parts = message.split("\\|");
-        String cmd = parts[0];
-
-        if (cmd.equals(Protocol.CMD_LOGIN)) {
-            // LOGIN | TênMáy
-            this.clientName = (parts.length > 1) ? parts[1] : "Unknown";
-            // Gọi Controller để cập nhật giao diện (Thêm Tab)
-            serverController.onClientLogin(clientName, this);
-        } 
-        else if (cmd.equals(Protocol.CMD_NOTIFY)) {
-            // NOTIFY | ACTION | PATH
-            if (parts.length >= 3) {
-                serverController.logToClient(clientName, "Báo cáo: " + parts[1] + " -> " + parts[2]);
-            }
+      }
+      case Protocol.CMD_NOTIFY -> {
+        // NOTIFY | ACTION | PATH
+        if (parts.length >= 3) {
+          serverController.logToClient(clientName, "Báo cáo: " + parts[1] + " -> " + parts[2]);
         }
-    }
-
-    public void sendMessage(String message) {
-        try {
-            if (out != null) {
-                out.writeUTF(message);
-                out.flush();
-            }
-        } catch (IOException e) { e.printStackTrace(); }
-    }
-
-    private void closeConnection() {
-        isConnected = false;
-        if (clientName != null) {
-            serverController.onClientDisconnect(clientName);
+      }
+      case Protocol.CMD_TREE -> {
+        // TREE | PATH
+        if (parts.length >= 2) {
+          String path = parts[1];
+          if (this.clientName == null) {
+            // buffer until we know clientName
+            pendingTree.add(path);
+          } else {
+            serverController.onClientTreeEntry(clientName, path);
+          }
         }
-        try { if (socket != null) socket.close(); } catch (Exception e) {}
+      }
+      default -> {
+      }
     }
+  }
+
+  public void sendMessage(String message) {
+    try {
+      if (out != null) {
+        out.writeUTF(message);
+        out.flush();
+      }
+    } catch (IOException e) {
+      if (clientName != null) serverController.logToClient(clientName, "Lỗi gửi tin: " + e.getMessage());
+      else System.err.println("Lỗi gửi tin (chưa có clientName): " + e.getMessage());
+    }
+  }
+
+  private void closeConnection() {
+    isConnected = false;
+    if (clientName != null) {
+        serverController.onClientDisconnect(clientName);
+    }
+    try { if (socket != null) socket.close(); } catch (IOException e) {
+        System.err.println("Lỗi đóng socket: " + e.getMessage());
+    }
+  }
 }

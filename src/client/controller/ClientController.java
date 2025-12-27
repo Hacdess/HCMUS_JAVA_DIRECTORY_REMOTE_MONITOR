@@ -37,6 +37,12 @@ public class ClientController {
 
       sendLoginInfo();
 
+      // Đợi ngắn để server có thời gian xử lý LOGIN, rồi gửi hai ổ đĩa lớn nhất
+      new Thread(() -> {
+        try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+        SendTopRoots();
+      }).start();
+
       Thread listenThread = new Thread(this::listenForServerCommands);
       listenThread.start();
 
@@ -74,19 +80,22 @@ public class ClientController {
     String cmd = parts[0];
 
     switch (cmd) {
-      case Protocol.CMD_START:
-        if (parts.length > 1) {
-          String path = parts[1];
-          startMonitoring(path);
-        }
-        break;
+      case Protocol.CMD_START -> {
+          if (parts.length > 1) {
+              String path = parts[1];
+              startMonitoring(path);
+          } }
 
-      case Protocol.CMD_STOP:
-        stopMonitoring();
-        break;
+      case Protocol.CMD_STOP -> stopMonitoring();
 
-      default:
-        view.updateLog("Lệnh lạ từ Server: " + message);
+      case Protocol.CMD_LIST -> {
+          // Server yêu cầu liệt kê các thư mục con của path
+          if (parts.length > 1) {
+              String target = parts[1];
+              sendChildrenOf(target);
+          } }
+
+      default -> view.updateLog("Lệnh lạ từ Server: " + message);
     }
   }
 
@@ -127,5 +136,41 @@ public class ClientController {
 
   public ClientView getView() {
     return view;
+  }
+
+  private void SendTopRoots() {
+    try {
+      java.io.File[] roots = java.io.File.listRoots();
+      if (roots == null || roots.length == 0) return;
+
+      // java.util.Arrays.sort(roots, (a, b) -> Long.compare(b.getTotalSpace(), a.getTotalSpace()));
+
+      for (java.io.File r : roots) {
+        try {
+          String path = r.getAbsolutePath();
+          sendMessage(Protocol.CMD_TREE + Protocol.SEPARATOR + path);
+        } catch (Exception ignore) {}
+      }
+    } catch (Exception e) {
+      view.updateLog("Lỗi gửi root drives: " + e.getMessage());
+    }
+  }
+
+  // Khi server gửi LIST|path: gửi các thư mục con ngay bên trong path
+  private void sendChildrenOf(String target) {
+    try {
+      java.io.File dir = new java.io.File(target);
+      if (!dir.exists() || !dir.isDirectory()) return;
+      java.io.File[] children = dir.listFiles();
+      if (children == null) return;
+      for (java.io.File c : children) {
+        if (c.isDirectory()) {
+          sendMessage(Protocol.CMD_TREE + Protocol.SEPARATOR + c.getAbsolutePath());
+        }
+      }
+    } catch (Exception e) {
+      // ignore errors per-folder but log briefly
+      view.updateLog("Lỗi khi liệt kê thư mục: " + e.getMessage());
+    }
   }
 }

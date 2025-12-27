@@ -6,6 +6,8 @@ public class Protocol {
 
   public static final String CMD_LOGIN = "LOGIN";
   public static final String CMD_NOTIFY = "NOTIFY";
+  public static final String CMD_TREE = "TREE";
+  public static final String CMD_LIST = "LIST";
   public static final String CMD_START = "START";
   public static final String CMD_STOP = "STOP";
 

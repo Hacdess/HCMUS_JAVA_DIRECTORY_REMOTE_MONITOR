@@ -24,7 +24,7 @@ public class ClientView extends JFrame{
     setSize( 500, 400);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-    setLocationRelativeTo(null); // center frame
+    setLocationRelativeTo(null);
     setLayout(new BorderLayout(10, 10));
 
 
@@ -37,7 +37,7 @@ public class ClientView extends JFrame{
     statusLabel.setFont(new Font("Arial", Font.BOLD, 14));
     statusLabel.setForeground(Color.BLUE);
 
-    pathLabel = new JLabel("Đang giám sát: [Chưa nhận lệnh]");
+    pathLabel = new JLabel("Đang giám sát: ...");
     pathLabel.setFont(new Font("Arial", Font.PLAIN, 12));
 
     panelInfo.add(statusLabel);
@@ -73,7 +73,7 @@ public class ClientView extends JFrame{
     SwingUtilities.invokeLater(() -> {
       statusLabel.setText("Trạng thái: " + status);
       if (status.contains("thành công") || status.contains("Đã kết nối")) {
-        statusLabel.setForeground(new Color(0, 150, 0)); // Màu xanh lá đậm
+        statusLabel.setForeground(new Color(0, 150, 0));
       } else {
         statusLabel.setForeground(Color.RED);
       }
@@ -81,6 +81,7 @@ public class ClientView extends JFrame{
   }
 
   public void setMonitoringPath(String path) {
+    System.out.println(path);
     SwingUtilities.invokeLater(() -> {
       pathLabel.setText("Đang giám sát: " + path);
       pathLabel.setForeground(Color.BLUE);
