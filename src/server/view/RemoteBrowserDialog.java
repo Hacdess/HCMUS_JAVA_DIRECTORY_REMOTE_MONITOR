@@ -81,7 +81,6 @@ public class RemoteBrowserDialog extends JDialog {
     List<String> children = controller.getClientChildren(clientName, currentPath);
     if (children.isEmpty()) {
       controller.sendListRequest(clientName, currentPath == null ? "" : currentPath);
-      try { Thread.sleep(300); } catch (InterruptedException ignored) {}
       children = controller.getClientChildren(clientName, currentPath);
     }
 

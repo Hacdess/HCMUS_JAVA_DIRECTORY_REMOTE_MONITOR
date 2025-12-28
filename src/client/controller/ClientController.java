@@ -1,11 +1,10 @@
 package SRC.client.controller;
 
-import java.io.*;
-import java.net.Socket;
-
 import SRC.client.model.ClientModel;
 import SRC.client.view.ClientView;
 import SRC.common.Protocol;
+import java.io.*;
+import java.net.Socket;
 
 public class ClientController {
   private ClientView view;
@@ -21,18 +20,15 @@ public class ClientController {
     model = new ClientModel();  
   }
 
-  // Hàm kết nối tới Server
   public void connectServer() {
     try {
       // Kết nối tới localhost (hoặc IP server) cổng 7075
       view.updateLog("Đang kết nối tới Server...");
-      // Lấy IP từ giao diện nếu người dùng đã nhập
       String ipFromView = view.getServerIP();
       if (ipFromView != null && !ipFromView.isEmpty()) {
         model.setServerIP(ipFromView);
       }
 
-      view.updateLog("Đang kết nối tới Server...");
       socket = new Socket(model.getServerIP(), model.getServerPort());
       model.setConnected(true);
 
@@ -45,9 +41,7 @@ public class ClientController {
 
       sendLoginInfo();
 
-      // Đợi ngắn để server có thời gian xử lý LOGIN, rồi gửi hai ổ đĩa lớn nhất
       new Thread(() -> {
-        // try { Thread.sleep(200); } catch (InterruptedException ignored) {}
         SendTopRoots();
       }).start();
 
