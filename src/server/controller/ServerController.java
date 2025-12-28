@@ -12,10 +12,9 @@ import src.server.view.ServerView;
 public class ServerController {
   private ServerView view;
   private boolean isRunning;
-  private Map<String, ClientHandler> clients = new HashMap<>();
-  private Map<String, JTextArea> clientLogs = new HashMap<>();
-  // Lưu các đường dẫn đã được client gửi (dùng để duyệt từ xa)
-  private Map<String, java.util.Set<String>> clientPaths = new HashMap<>();
+  private Map<String, ClientHandler> clients = new HashMap<>(); // Lưu tên clients
+  private Map<String, JTextArea> clientLogs = new HashMap<>(); // Lưu logs của clients
+  private Map<String, java.util.Set<String>> clientPaths = new HashMap<>(); // Lưu các đường dẫn của từng client
 
   public ServerController(ServerView view) {
     this.view = view;
@@ -26,13 +25,9 @@ public class ServerController {
     new Thread(() -> {
       try (ServerSocket serverSocket = new ServerSocket(Protocol.DEFAULT_PORT)) {
         isRunning = true;
-        System.out.println("Server đang chạy tại cổng " + Protocol.DEFAULT_PORT);
 
         while (isRunning) {
-          Socket clientSocket = serverSocket.accept();
-          System.out.println("Có kết nối mới!");
-          
-          // Tạo và chạy luồng xử lý riêng cho Client này
+          Socket clientSocket = serverSocket.accept();          
           ClientHandler handler = new ClientHandler(clientSocket, this);
           handler.start(); 
         }
@@ -42,11 +37,11 @@ public class ServerController {
     }).start();
   }
 
-  // --- CÁC HÀM XỬ LÝ GIAO DIỆN ---
-
   public synchronized String onClientLogin(ClientHandler handler, String desiredName) {
     String name = (desiredName == null || desiredName.isEmpty()) ? "Unknown" : desiredName;
     String assigned = name;
+
+    // Chống duplicate tên client khi chạy nhiều client trên 1 máy
     int suffix = 1;
     while (clients.containsKey(assigned)) {
       assigned = name + "#" + suffix;
@@ -56,9 +51,9 @@ public class ServerController {
     clients.put(assigned, handler);
     final String toShow = assigned;
     SwingUtilities.invokeLater(() -> {
-      JTextArea txtLog = view.addNewTab(toShow); // Thêm Tab mới
-      clientLogs.put(toShow, txtLog);
-      txtLog.append("--- Client [" + toShow + "] đã tham gia hệ thống ---\n");
+      JTextArea logText = view.addNewTab(toShow); // Thêm Tab mới
+      clientLogs.put(toShow, logText);
+      logText.append("--- Client [" + toShow + "] đã tham gia hệ thống ---\n");
     });
 
     return assigned;
@@ -66,24 +61,22 @@ public class ServerController {
 
   // Gọi khi client gửi một entry (TREE|path)
   public synchronized void onClientTreeEntry(String clientName, String fullPath) {
-      clientPaths.putIfAbsent(clientName, new java.util.HashSet<>());
-      clientPaths.get(clientName).add(fullPath);
-      logToClient(clientName, "Tree: " + fullPath);
+    clientPaths.putIfAbsent(clientName, new java.util.HashSet<>());
+    clientPaths.get(clientName).add(fullPath);
   }
 
   // Lấy các children trực tiếp đã biết cho clientName và parentPath
-  // Nếu parentPath == null hoặc empty string, trả về các root đã biết
   public synchronized java.util.List<String> getClientChildren(String clientName, String parentPath) {
     java.util.List<String> res = new java.util.ArrayList<>();
     java.util.Set<String> set = clientPaths.get(clientName);
     if (set == null) return res;
 
+    // root entries là những path có parent == null hoặc dạng root
     if (parentPath == null || parentPath.isEmpty()) {
-      // root entries: những path có parent == null hoặc dạng root
       for (String p : set) {
-          java.io.File f = new java.io.File(p);
-          String parent = f.getParent();
-          if (parent == null) res.add(p);
+        java.io.File f = new java.io.File(p);
+        String parent = f.getParent();
+        if (parent == null) res.add(p);
       }
       return res;
     }
@@ -93,7 +86,7 @@ public class ServerController {
       String parent = f.getParent();
       if (parent == null) continue;
       try {
-          if (parent.equals(parentPath)) res.add(p);
+        if (parent.equals(parentPath)) res.add(p); // Các con của parentPath
       } catch (Exception ignore) {}
     }
 
@@ -107,9 +100,9 @@ public class ServerController {
   }
 
   public void logToClient(String clientName, String message) {
-    JTextArea txt = clientLogs.get(clientName);
-    if (txt != null) {
-        SwingUtilities.invokeLater(() -> txt.append(message + "\n"));
+    JTextArea text = clientLogs.get(clientName);
+    if (text != null) {
+      SwingUtilities.invokeLater(() -> text.append(message + "\n"));
     }
   }
 
@@ -119,6 +112,7 @@ public class ServerController {
   }
 
   public void sendStopRequest(String clientName) {
+    logToClient(clientName, "Báo cáo: Đã dừng giám sát");
     ClientHandler h = clients.get(clientName);
     if (h != null) h.sendMessage(Protocol.CMD_STOP);
   }

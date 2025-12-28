@@ -23,7 +23,7 @@ public class ClientController {
   // Hàm kết nối tới Server
   public void connectServer() {
     try {
-      // Kết nối tới localhost (hoặc IP server) cổng 9999
+      // Kết nối tới localhost (hoặc IP server) cổng 7075
       view.updateLog("Đang kết nối tới Server...");
       socket = new Socket(model.getServerIP(), model.getServerPort());
       model.setConnected(true);
@@ -39,7 +39,7 @@ public class ClientController {
 
       // Đợi ngắn để server có thời gian xử lý LOGIN, rồi gửi hai ổ đĩa lớn nhất
       new Thread(() -> {
-        try { Thread.sleep(200); } catch (InterruptedException ignored) {}
+        // try { Thread.sleep(200); } catch (InterruptedException ignored) {}
         SendTopRoots();
       }).start();
 
@@ -53,16 +53,14 @@ public class ClientController {
     }
   }
 
-  // Gửi thông tin máy (Tên máy) cho Server biết
+  // Gửi tên máy cho Server biết
   private void sendLoginInfo() {
     sendMessage(Protocol.CMD_LOGIN + Protocol.SEPARATOR + model.getMachineName());
   }
 
-  // Vòng lặp lắng nghe lệnh từ Server
   private void listenForServerCommands() {
     try {
       while (isConnected) {
-        // Đọc tin nhắn từ Server (Chờ ở đây nếu chưa có tin)
         String message = in.readUTF();
         processMessage(message);
       }
@@ -70,47 +68,42 @@ public class ClientController {
       view.updateLog("Server đã ngắt kết nối.");
       isConnected = false;
       view.setConnectionStatus("Ngắt kết nối");
-      stopMonitoring(); // Dừng giám sát nếu mất kết nối
+      stopMonitoring();
     }
   }
 
-  // Xử lý logic từng lệnh
   private void processMessage(String message) {
     String[] parts = message.split("\\|");
     String cmd = parts[0];
 
     switch (cmd) {
       case Protocol.CMD_START -> {
-          if (parts.length > 1) {
-              String path = parts[1];
-              startMonitoring(path);
-          } }
-
+        if (parts.length > 1) {
+          String path = parts[1];
+          startMonitoring(path);
+        }
+      }
       case Protocol.CMD_STOP -> stopMonitoring();
 
       case Protocol.CMD_LIST -> {
-          // Server yêu cầu liệt kê các thư mục con của path
-          if (parts.length > 1) {
-              String target = parts[1];
-              sendChildrenOf(target);
-          } }
-
+        if (parts.length > 1) {
+          String target = parts[1];
+          sendChildrenOf(target);
+        }
+      }
       default -> view.updateLog("Lệnh lạ từ Server: " + message);
     }
   }
 
-  // --- CÁC HÀM ĐIỀU KHIỂN GIÁM SÁT ---
-
   private void startMonitoring(String path) {
-    // Nếu đang giám sát cái khác thì tắt trước đã
+    // Nếu đang giám sát cái khác thì tắt
     stopMonitoring();
 
     model.setMonitoringPath(path);
-
     view.updateLog("Server yêu cầu giám sát: " + path);
     
     // Khởi tạo và chạy luồng Watcher mới
-    // Truyền 'this' vào để Watcher có thể gọi hàm sendMessage gửi ngược lại Server
+    // Truyền this vào để Watcher có thể gọi hàm sendMessage gửi ngược lại Server
     currentWatcher = new DirectoryWatcher(path, this);
     currentWatcher.start();
   }
@@ -143,8 +136,6 @@ public class ClientController {
       java.io.File[] roots = java.io.File.listRoots();
       if (roots == null || roots.length == 0) return;
 
-      // java.util.Arrays.sort(roots, (a, b) -> Long.compare(b.getTotalSpace(), a.getTotalSpace()));
-
       for (java.io.File r : roots) {
         try {
           String path = r.getAbsolutePath();
@@ -156,7 +147,7 @@ public class ClientController {
     }
   }
 
-  // Khi server gửi LIST|path: gửi các thư mục con ngay bên trong path
+  // Server gửi LIST|path -> gửi các thư mục con ngay bên trong path
   private void sendChildrenOf(String target) {
     try {
       java.io.File dir = new java.io.File(target);
@@ -169,7 +160,6 @@ public class ClientController {
         }
       }
     } catch (Exception e) {
-      // ignore errors per-folder but log briefly
       view.updateLog("Lỗi khi liệt kê thư mục: " + e.getMessage());
     }
   }

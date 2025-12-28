@@ -1,6 +1,7 @@
 package src.client.model;
 
 import java.net.UnknownHostException;
+import src.common.Protocol;
 
 public class ClientModel {
   private String serverIP;
@@ -12,7 +13,7 @@ public class ClientModel {
   public ClientModel() {
     // Cấu hình mặc định
     this.serverIP = "localhost";
-    this.serverPort = 1234;
+    this.serverPort = Protocol.DEFAULT_PORT;
     this.monitoringPath = "Chưa có";
     this.isConnected = false;
     

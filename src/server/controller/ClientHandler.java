@@ -12,7 +12,6 @@ public class ClientHandler extends Thread {
   private DataInputStream in;
   private DataOutputStream out;
   private String clientName;
-  // Buffer các TREE messages đến trước khi LOGIN được xử lý
   private java.util.List<String> pendingTree = new java.util.ArrayList<>();
   private boolean isConnected = true;
 
@@ -48,12 +47,9 @@ public class ClientHandler extends Thread {
       case Protocol.CMD_LOGIN -> {
         // LOGIN | TênMáy
         String desired = (parts.length > 1) ? parts[1] : "Unknown";
-        // Gọi Controller để cập nhật giao diện (Thêm Tab)
-        // Server trả lại tên đã được đảm bảo duy nhất
         String assigned = serverController.onClientLogin(this, desired);
         this.clientName = assigned;
-        // Nếu có pending TREE messages, flush chúng với clientName đúng
-        if (!pendingTree.isEmpty()) {
+        if (!pendingTree.isEmpty()) { // Tree tới lẹ hơn
           for (String p : pendingTree) {
             serverController.onClientTreeEntry(assigned, p);
           }
@@ -71,15 +67,13 @@ public class ClientHandler extends Thread {
         if (parts.length >= 2) {
           String path = parts[1];
           if (this.clientName == null) {
-            // buffer until we know clientName
-            pendingTree.add(path);
+            pendingTree.add(path); // Lỡ Tree đến lẹ hơn client thì cho vô phòng chờ
           } else {
             serverController.onClientTreeEntry(clientName, path);
           }
         }
       }
-      default -> {
-      }
+      default -> {}
     }
   }
 
@@ -98,10 +92,10 @@ public class ClientHandler extends Thread {
   private void closeConnection() {
     isConnected = false;
     if (clientName != null) {
-        serverController.onClientDisconnect(clientName);
+      serverController.onClientDisconnect(clientName);
     }
     try { if (socket != null) socket.close(); } catch (IOException e) {
-        System.err.println("Lỗi đóng socket: " + e.getMessage());
+      System.err.println("Lỗi đóng socket: " + e.getMessage());
     }
   }
 }

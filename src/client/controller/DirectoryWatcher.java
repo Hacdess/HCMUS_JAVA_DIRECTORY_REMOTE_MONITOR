@@ -26,8 +26,6 @@ public class DirectoryWatcher extends Thread {
       Path watchPath = Paths.get(this.path);
 
       if (!Files.exists(watchPath) || !Files.isDirectory(watchPath)) {
-        // Lỗi: Đường dẫn không tồn tại
-        // Gửi thông báo theo định dạng Protocol để Server có thể xử lý và log đúng
         String message = Protocol.CMD_NOTIFY + Protocol.SEPARATOR + "NOT_EXIST" + Protocol.SEPARATOR + this.path;
         clientController.sendMessage(message);
         clientController.getView().updateLog("Không tìm thấy đường dẫn: " + this.path);
@@ -38,7 +36,6 @@ public class DirectoryWatcher extends Thread {
       String message = Protocol.CMD_NOTIFY + Protocol.SEPARATOR + "MONITORING" + Protocol.SEPARATOR + this.path;
       clientController.sendMessage(message);
 
-      // Đăng ký thư mục gốc
       watchPath.register(
         this.watchService,
         StandardWatchEventKinds.ENTRY_CREATE,
@@ -46,7 +43,6 @@ public class DirectoryWatcher extends Thread {
         StandardWatchEventKinds.ENTRY_MODIFY
       );
 
-      // Thông báo: đang giám sát thư mục
       WatchKey key;
 
       while (isRunning) {
@@ -56,7 +52,7 @@ public class DirectoryWatcher extends Thread {
           Thread.currentThread().interrupt();
           return;
         } catch (ClosedWatchServiceException cwse) {
-          // WatchService đã bị đóng - thoát vòng
+          // WatchService đã bị đóng
           break;
         }
 
@@ -69,11 +65,9 @@ public class DirectoryWatcher extends Thread {
           WatchEvent<Path> ev = (WatchEvent<Path>) event;
           Path fileName = ev.context();
 
-          // Lấy đường dẫn đầy đủ tới file/thu muc
           Path dir = (Path) key.watchable();
           Path fullPath = dir.resolve(fileName);
 
-          // Map event kind sang TYPE_* trong Protocol
           String action;
           if (kind == StandardWatchEventKinds.ENTRY_CREATE) action = Protocol.TYPE_CREATE;
           else if (kind == StandardWatchEventKinds.ENTRY_DELETE) action = Protocol.TYPE_DELETE;
@@ -86,7 +80,6 @@ public class DirectoryWatcher extends Thread {
           String log = action + " -> " + fullPath.toString();
           clientController.getView().updateLog(log);
 
-          // Nếu tạo mới 1 thư mục thì đăng ký nó để theo dõi tiếp (dynamic registration)
           if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
             try {
               if (Files.isDirectory(fullPath)) {

@@ -1,7 +1,7 @@
 package src.common;
 
 public class Protocol {
-  public static final int DEFAULT_PORT = 1234;
+  public static final int DEFAULT_PORT = 7075; // MSSV của em :>
   public static final String SEPARATOR = "|";
 
   public static final String CMD_LOGIN = "LOGIN";
