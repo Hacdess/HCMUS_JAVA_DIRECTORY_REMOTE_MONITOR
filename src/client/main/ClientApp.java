@@ -13,11 +13,12 @@ public class ClientApp {
 
         ClientController controller = new ClientController(view);
 
-        view.setVisible(true);
+        // Hiển thị giao diện và chờ người dùng bấm Kết nối
+        view.addConnectListener(e -> {
+          new Thread(() -> controller.connectServer()).start();
+        });
 
-        new Thread(() -> {
-          controller.connectServer();
-        }).start();
+        view.setVisible(true);
       } catch (Exception e) {
         String msg = "Lỗi khởi tạo Client: " + e.getMessage();
         System.err.println(msg);

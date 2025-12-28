@@ -25,6 +25,13 @@ public class ClientController {
     try {
       // Kết nối tới localhost (hoặc IP server) cổng 7075
       view.updateLog("Đang kết nối tới Server...");
+      // Lấy IP từ giao diện nếu người dùng đã nhập
+      String ipFromView = view.getServerIP();
+      if (ipFromView != null && !ipFromView.isEmpty()) {
+        model.setServerIP(ipFromView);
+      }
+
+      view.updateLog("Đang kết nối tới Server...");
       socket = new Socket(model.getServerIP(), model.getServerPort());
       model.setConnected(true);
 

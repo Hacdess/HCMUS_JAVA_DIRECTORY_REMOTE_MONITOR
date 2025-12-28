@@ -2,22 +2,27 @@ package src.client.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 public class ClientView extends JFrame{
   private JTextArea logArea;
   private JLabel statusLabel;
   private JLabel pathLabel;
+  private JTextField serverIpField;
+  private JButton connectButton;
 
   public ClientView() {
     setTitle("Client - Hệ thống giám sát");
@@ -32,6 +37,15 @@ public class ClientView extends JFrame{
     JPanel panelInfo = new JPanel();
     panelInfo.setLayout(new BoxLayout(panelInfo, BoxLayout.Y_AXIS));
     panelInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 5 , 10));
+    // Top row: connection controls
+    JPanel connPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    connPanel.add(new JLabel("Server IP:"));
+    serverIpField = new JTextField(12);
+    serverIpField.setText("localhost");
+    connPanel.add(serverIpField);
+    connectButton = new JButton("Kết nối");
+    connPanel.add(connectButton);
+    panelInfo.add(connPanel);
 
     statusLabel = new JLabel("Trạng thái: Đang khởi động...");
     statusLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -60,6 +74,14 @@ public class ClientView extends JFrame{
     add(footerLabel, BorderLayout.SOUTH);
   }
 
+  public String getServerIP() {
+    return serverIpField.getText().trim();
+  }
+
+  public void addConnectListener(java.awt.event.ActionListener l) {
+    connectButton.addActionListener(l);
+  }
+  
   public void updateLog(String message) {
     SwingUtilities.invokeLater(() -> {
       String time = new SimpleDateFormat("HH:mm:ss").format(new Date());
