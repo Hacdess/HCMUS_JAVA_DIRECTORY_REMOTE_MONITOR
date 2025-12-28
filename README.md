@@ -1,4 +1,4 @@
-"# HCMUS_JAVA_DIRECTORY_REMOTE_MONITOR" 
+# HCMUS_JAVA_DIRECTORY_REMOTE_MONITOR
 
 - Họ tên: Lê Trung Kiên
 
@@ -8,4 +8,4 @@
   - Cá nhân: letrungkienthd@gmail.com
   - Fit: ltkien23@clc.fitus.edu.vn
   
-- Link YouTube demo
+- Link YouTube demo: https://youtu.be/CokU2ZclCh4
