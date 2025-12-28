@@ -1,7 +1,8 @@
-package src.client.model;
+package SRC.client.model;
 
 import java.net.UnknownHostException;
-import src.common.Protocol;
+
+import SRC.common.Protocol;
 
 public class ClientModel {
   private String serverIP;

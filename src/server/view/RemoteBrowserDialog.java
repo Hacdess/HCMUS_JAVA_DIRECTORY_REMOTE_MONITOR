@@ -1,5 +1,6 @@
-package src.server.view;
+package SRC.server.view;
 
+import SRC.server.controller.ServerController;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -13,7 +14,6 @@ import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
-import src.server.controller.ServerController;
 
 public class RemoteBrowserDialog extends JDialog {
   private ServerController controller;

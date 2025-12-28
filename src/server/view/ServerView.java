@@ -1,8 +1,8 @@
-package src.server.view;
+package SRC.server.view;
 
+import SRC.server.controller.ServerController;
 import java.awt.*;
 import javax.swing.*;
-import src.server.controller.ServerController;
 
 public class ServerView extends JFrame {
   private JTabbedPane tabbedPane; // Quản lý các tab client

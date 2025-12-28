@@ -1,10 +1,11 @@
-package src.server.controller;
+package SRC.server.controller;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import src.common.Protocol;
+
+import SRC.common.Protocol;
 
 public class ClientHandler extends Thread {
   private Socket socket;

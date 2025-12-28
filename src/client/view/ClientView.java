@@ -1,4 +1,4 @@
-package src.client.view;
+package SRC.client.view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -81,7 +81,7 @@ public class ClientView extends JFrame{
   public void addConnectListener(java.awt.event.ActionListener l) {
     connectButton.addActionListener(l);
   }
-  
+
   public void updateLog(String message) {
     SwingUtilities.invokeLater(() -> {
       String time = new SimpleDateFormat("HH:mm:ss").format(new Date());

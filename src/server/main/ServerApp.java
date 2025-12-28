@@ -1,7 +1,7 @@
-package src.server.main;
+package SRC.server.main;
 
-import src.server.controller.ServerController;
-import src.server.view.ServerView;
+import SRC.server.controller.ServerController;
+import SRC.server.view.ServerView;
 
 public class ServerApp {
   public static void main(String[] args) {

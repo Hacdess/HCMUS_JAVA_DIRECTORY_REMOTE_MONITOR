@@ -1,4 +1,4 @@
-package src.server.controller;
+package SRC.server.controller;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -6,8 +6,9 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
-import src.common.Protocol;
-import src.server.view.ServerView;
+
+import SRC.common.Protocol;
+import SRC.server.view.ServerView;
 
 public class ServerController {
   private ServerView view;

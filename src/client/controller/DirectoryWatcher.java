@@ -1,8 +1,9 @@
-package src.client.controller;
+package SRC.client.controller;
 
 import java.io.IOException;
 import java.nio.file.*;
-import src.common.Protocol;
+
+import SRC.common.Protocol;
 
 // https://www.baeldung.com/java-nio2-watchservice
 // https://docs.oracle.com/javase/8/docs/api/java/nio/file/WatchService.html

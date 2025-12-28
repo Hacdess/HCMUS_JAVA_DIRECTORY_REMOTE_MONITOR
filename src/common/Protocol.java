@@ -1,4 +1,4 @@
-package src.common;
+package SRC.common;
 
 public class Protocol {
   public static final int DEFAULT_PORT = 7075; // MSSV của em :>

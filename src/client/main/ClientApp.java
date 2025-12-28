@@ -1,9 +1,9 @@
-package src.client.main;
+package SRC.client.main;
 
+import SRC.client.controller.ClientController;
+import SRC.client.view.ClientView;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import src.client.controller.ClientController;
-import src.client.view.ClientView;
 
 public class ClientApp {
   public static void main(String[] args) {

@@ -1,10 +1,11 @@
-package src.client.controller;
+package SRC.client.controller;
 
 import java.io.*;
 import java.net.Socket;
-import src.client.model.ClientModel;
-import src.client.view.ClientView;
-import src.common.Protocol;
+
+import SRC.client.model.ClientModel;
+import SRC.client.view.ClientView;
+import SRC.common.Protocol;
 
 public class ClientController {
   private ClientView view;
